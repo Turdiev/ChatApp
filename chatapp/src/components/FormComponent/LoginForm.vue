@@ -94,12 +94,10 @@ export default class LoginForm extends Vue {
       return
     }
 
-    const res = await this.$store.dispatch('module/logInPusher', { username: this.login })
+    const res = await this.$store.dispatch('module/logInPusher', this.login)
     
     if (res) {
       this.$store.commit('module/setUser', { username: this.login})
-      console.log('LOGIN')
-      
       this.$router.push({ path: '/chat' })
     } else {
       this.responseError = true

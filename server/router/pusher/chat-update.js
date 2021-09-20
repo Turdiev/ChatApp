@@ -1,10 +1,9 @@
-// import { pusher } from "./../../lib/pusher";
-const { pusher } = require('./../../lib/pusher');
+const Pusher = require('./../../lib/pusher');
 
 module.exports = async (req, res) => {
   const { message, username } = req.body;
 
-  await pusher.trigger("presence-channel", "chat-update", {
+  await Pusher.trigger("presence-channel", "chat-update", {
     message,
     username
   });

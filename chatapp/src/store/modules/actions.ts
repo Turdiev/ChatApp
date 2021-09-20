@@ -11,12 +11,8 @@ export default class RootActions extends Actions<RootState, RootGetters, RootMut
       authEndpoint: '/pusher/auth',
       auth: { params: { username } }
     })
-    
 
     try {
-      this.commit('setPusherAuth', pusher)
-      console.log('PUSHER')
-      
       return pusher
     } catch (err) {
       console.error(err)

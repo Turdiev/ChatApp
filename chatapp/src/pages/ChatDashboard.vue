@@ -2,27 +2,32 @@
   <b-container
     fluid
     class="ld-over"
+    :class="{ running: loading }"
   >
-    <div class="ld ld-ring ld-spin" />
+    <div class="ld lds-ring ld-spin" />
     <b-row>
+      <b-col cols="4">
+        <SideBar
+          sidebar-type-title="Members"
+          side-size="300"
+          :online-user="onlineUserCount"
+          :options="allMembers"
+          :selected-list="allUsersOnline"
+        />
+      </b-col>
       <b-col cols="8">
         <b-row>
-          <b-col id="chat-content">
-            <MessageList />
+          <b-col>
+            <MessageList
+              :messages="messages"
+            />
           </b-col>
         </b-row>
-        <b-row>
+        <b-row class="mt-0">
           <b-col>
             <MessageForm />
           </b-col>
         </b-row>
-      </b-col>
-
-      <b-col cols="2">
-        <SideBar
-          sidebar-type-title="Members"
-          side-size="500"
-        />
       </b-col>
     </b-row>
   </b-container>
@@ -45,29 +50,49 @@ const name = 'ChatDashboard'
 })
 export default class ChatDashboard extends Vue {
   name: string = name
-  onlineUserCount = 0
+  onlineUserCount: number | undefined = 0
+  allUsersOnline: string[] = []
+  allMembers: string[] = []
+  messages: string[] = []
+  loading = false
 
   get username () {
     return this.$store.state.module.user.username
   }
 
   get pusher () {
-    return this.$store.state.module.pusher
+    return this.$store.getters['module/getPusher']
   }
 
-  mounted () {
+  async mounted () {
+    this.loading = true
 
-    const channel = this.pusher.subscribe('presence-channel')
-    console.log('Channel', channel)
+    const pusher = await this.$store.dispatch('module/logInPusher', this.username)
+
+    const channel = pusher.subscribe('presence-channel')
     
     channel.bind('pusher:subscription_succeeded', (members: any) => {
-      console.log('Members', members.count)
       this.onlineUserCount = members.count
+      this.allMembers = [members.members]
+      this.allUsersOnline.push(members.me)
     })
 
     channel.bind('pusher:member_added', (member: any) => {
-      console.log('count', member)
-      // setOnlineUsersCount(channel.members.count)
+      this.onlineUserCount = channel.members.count
+      this.allUsersOnline.push(member)
+    })
+
+    channel.bind('pusher:member_removed', (member: any) => {
+      this.onlineUserCount = channel.members.count
+      this.allUsersOnline = this.allUsersOnline.filter(user => {
+        if (member.info.username !== user.info.username) {
+          return user
+        }
+      })
+    })
+
+    channel.bind('chat-update',  (data: any) => {
+      this.messages.push(data)
     })
   }
 }

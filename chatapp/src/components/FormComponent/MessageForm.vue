@@ -1,6 +1,6 @@
 <template>
   <div class="message-form ld-over">
-    <small class="text-muted">@{{ getUser.username }}</small>
+    <small class="text-muted">@{{ username }}</small>
     <form
       class="ld-over"
       :class="{ running: getSending }"
@@ -35,6 +35,7 @@
   </div>
 </template>
 <script lang='ts'>
+import API_REQUEST from '@/api'
 import { Component, Vue } from 'vue-property-decorator'
 import ButtonComponent from '../ButtonComponent.vue'
 
@@ -49,8 +50,8 @@ export default class MessageForm extends Vue {
   message: string | number = ''
   messages: string[] = []
 
-  get getUser(): string {
-    return this.$store.state.module.user
+  get username(): string {
+    return this.$store.state.module.user.username
   }
 
   get getSending(): boolean {
@@ -65,8 +66,12 @@ export default class MessageForm extends Vue {
     return this.$store.getters['module/hasError']
   }
 
-  onSubmit(): string {
-    return ''
+  async onSubmit() {
+    const message = await API_REQUEST('sendChatMessage', {
+      message: this.message,
+      username: this.username
+    })
+    this.message = ''
   }
 }
 </script>
